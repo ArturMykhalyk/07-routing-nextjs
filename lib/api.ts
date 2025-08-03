@@ -9,9 +9,10 @@ interface NotesHttpResponse {
     totalPages: number,
 }
 
-export const fetchNotes = async (search: string, page:number): Promise<NotesHttpResponse>=> {
+export const fetchNotes = async (search: string, page:number,tag:string): Promise<NotesHttpResponse>=> {
     const params = {
-        ...(search && { search}),
+        ...(search && { search }),
+        ...(tag&&{tag}),
         page,
         perPage:12,
     };
