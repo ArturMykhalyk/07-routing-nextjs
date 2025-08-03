@@ -12,7 +12,6 @@ export default async function Notes({ params }: Props) {
   const initialPage = 1;
   const { slug } = await params;
   const tagsNotes = slug[0] === 'All' ? '' : slug[0];
-  console.log(slug);
   const initialData = await fetchNotes(initialQuery, initialPage, tagsNotes);
 
   return (

@@ -40,7 +40,7 @@ export default function TagsMenu() {
   return (
     <div className={css.menuContainer}>
       <button ref={buttonRef} onClick={toggleMenu} className={css.menuButton}>
-        Notes ▾
+        {isOpenMenu ? 'Notes ▴' : 'Notes ▾'}
       </button>
       {isOpenMenu && (
         <ul ref={menuRef} className={css.menuList}>
