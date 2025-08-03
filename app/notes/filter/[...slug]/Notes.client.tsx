@@ -4,7 +4,7 @@ import { SearchBox } from '@/components/SearchBox/SearchBox';
 import css from './NotesPage.module.css';
 import { fetchNotes } from '@/lib/api';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Pagination from '@/components/Pagination/Pagination';
 import { Loader } from '@/components/Loader/Loader';
 import { ErrorMessage } from '@/components/ErrorMessage/ErrorMessage';
@@ -12,7 +12,7 @@ import { ErrorMessageEmpty } from '@/components/ErrorMessageEmpty/ErrorMessageEm
 import { NoteList } from '@/components/NoteList/NoteList';
 import { Modal } from '@/components/Modal/Modal';
 import { NoteForm } from '@/components/NoteForm/NoteForm';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounce } from 'use-debounce';
 import { Toaster } from 'react-hot-toast';
 import { Note } from '@/types/note';
 
@@ -21,24 +21,29 @@ interface NotesClientProps {
     notes: Note[];
     totalPages: number;
   };
-  initialQuery: string;
-  initialPage: number;
-  initialTags: string;
+
+  initialTag: string;
 }
 
 export default function NotesClient({
   initialData,
-  initialQuery,
-  initialPage,
-  initialTags,
+
+  initialTag,
 }: NotesClientProps) {
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [query, setQuery] = useState(initialQuery);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery] = useDebounce(query, 1000);
+  const [tag, setTag] = useState(initialTag);
   const [isOpenModal, setIsOpenModal] = useState(false);
 
+  useEffect(() => {
+    setTag(initialTag);
+    setCurrentPage(1);
+  }, [initialTag]);
+
   const { data, isError, isLoading, isSuccess } = useQuery({
-    queryKey: ['notes', query, currentPage, initialTags],
-    queryFn: () => fetchNotes(query, currentPage, initialTags),
+    queryKey: ['notes', debouncedQuery, currentPage, tag],
+    queryFn: () => fetchNotes(debouncedQuery, currentPage, tag),
     placeholderData: keepPreviousData,
     initialData,
     refetchOnMount: false,
@@ -52,17 +57,14 @@ export default function NotesClient({
 
   const handleCloseModal = () => setIsOpenModal(false);
 
-  const handleChange = useDebouncedCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setQuery(e.target.value);
-      setCurrentPage(1);
-    },
-    1000
-  );
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    setCurrentPage(1);
+  };
   return (
     <div className={css.app}>
       <div className={css.toolbar}>
-        <SearchBox onChange={handleChange} />
+        <SearchBox value={query} onChange={handleChange} />
         {isSuccess && totalPages > 1 && (
           <Pagination
             page={currentPage}
